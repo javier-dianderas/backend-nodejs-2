@@ -5,12 +5,14 @@ import eventsRouter from "./routes/events.routes.js";
 import sessionsRouter from "./routes/sessions.routes.js";
 import dotenv from "dotenv";
 import errorHandlerMiddleware from "./middlewares/errorHandler.middleware.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 connectDB();
 
