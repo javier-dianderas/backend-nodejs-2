@@ -34,7 +34,7 @@ El API utiliza las siguientes tecnologías:
 - dotenv
 - bcrypt
 - JWT
-- Passport
+- Passport (permite a futuro incluir proveedores externos como gmail, github y otros)
 - cookie-parser
 - Nodemailer
 

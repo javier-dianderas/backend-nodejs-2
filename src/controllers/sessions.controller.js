@@ -1,6 +1,7 @@
 import { UserModel } from "../models/user.model.js";
 import { createHash, isValidPassword } from "../utils/hash.js";
 import { generateToken } from "../utils/jwt.js";
+import { CurrentUserDTO } from "../dto/current-user.dto.js";
 
 export const register = async (req, res) => {
     
@@ -123,5 +124,50 @@ export const logout = async (req, res) => {
     res.status(200).json({
         status: "success",
         message: "Logout correcto"
+    });
+}
+
+export const registerResponse = (req, res) => {
+    res.status(201).json({
+        status: "success",
+        message: "Usuario registrado correctamente",
+        payload: {
+            id: req.user._id,
+            first_name: req.user.first_name,
+            last_name: req.user.last_name,
+            email: req.user.email,
+            role: req.user.role
+        }
+    })
+}
+
+export const loginResponse = (req, res) => {
+    const tokenUser = {
+        id: req.user._id,
+        email: req.user.email,
+        role: req.user.role
+    };
+
+    const token = generateToken(tokenUser);
+
+    res.cookie("currentUser", token, {
+        httpOnly: true,
+        maxAge: 60 * 60 * 1000,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production"
+    });
+
+    res.status(200).json({
+        status: "success",
+        message: "Login correcto"
+    });
+}
+
+export const getCurrentUserResponse = (req, res) => {
+    const userDTO = new CurrentUserDTO(req.user);
+
+    res.status(200).json({
+        status: "success",
+        payload: userDTO
     });
 }

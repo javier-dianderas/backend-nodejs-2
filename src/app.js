@@ -3,16 +3,17 @@ import express from "express";
 import healthRoutes from "./routes/health.routes.js";
 import eventsRouter from "./routes/events.routes.js";
 import sessionsRouter from "./routes/sessions.routes.js";
-import dotenv from "dotenv";
 import errorHandlerMiddleware from "./middlewares/errorHandler.middleware.js";
 import cookieParser from "cookie-parser";
-
-dotenv.config();
+import passport from "passport";
+import "./config/env.js";
+import "./config/passport.config.js";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(passport.initialize());
 
 connectDB();
 
