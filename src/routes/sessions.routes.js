@@ -5,10 +5,6 @@ import passport from "passport";
 
 const router = Router();
 
-// router.post("/register", register);
-// router.post("/login", login);
-// router.get("/current", authMiddleware, getCurrentUser);
-
 router.post(
     "/register",
     passport.authenticate("register", {
