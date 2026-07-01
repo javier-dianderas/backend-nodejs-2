@@ -81,7 +81,7 @@ export const login = async (req, res) => {
         });
     }
 
-    const validPassword = isValidPassword(password, user.password)
+    const validPassword = await isValidPassword(password, user.password)
     if(!validPassword) {
         return res.status(401).json({
             status: "error",
