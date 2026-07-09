@@ -25,7 +25,7 @@ Los permisos que tiene cada rol se describen en la siguiente tabla:
 
 | **Acción**                         | **user** | **organizer** | **admin** |
 | ---------------------------------- | -------- | ------------- | --------- |
-| Consultar eventos publicados       | :si:     | si            | si        |
+| Consultar eventos publicados       | si       | si            | si        |
 | Crear eventos                      | no       | si            | si        |
 | Modificar/cancelar eventos propios | no       | si            | si        |
 | Modificar cualquier evento         | no       | no            | si        |
