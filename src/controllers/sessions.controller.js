@@ -171,3 +171,15 @@ export const getCurrentUserResponse = (req, res) => {
         payload: userDTO
     });
 }
+
+export const getUsers = async (req, res) => {
+
+    const users = await UserModel
+        .find()
+        .select("first_name last_name email role createdAt updatedAt");
+    
+    res.status(200).json({
+        status: "success",
+        payload: users
+    });
+}

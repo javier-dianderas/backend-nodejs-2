@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { getCurrentUser, login, loginResponse, logout, register, registerResponse, getCurrentUserResponse } from "../controllers/sessions.controller.js";
+import { getCurrentUser, login, loginResponse, logout, register, registerResponse, getCurrentUserResponse, getUsers } from "../controllers/sessions.controller.js";
 import passport from "passport";
+import { authorizeRoles } from "../middlewares/authorizeRoles.middleware.js";
 
 const router = Router();
 
@@ -34,5 +35,13 @@ router.post(
         session: false
     }),
     logout);
+
+router.get(
+    "/users",
+    passport.authenticate("current", {
+        session: false
+    }),
+    authorizeRoles("admin"),
+    getUsers);
 
 export default router;

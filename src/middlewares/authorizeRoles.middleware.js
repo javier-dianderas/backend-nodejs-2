@@ -6,8 +6,7 @@ export const authorizeRoles = (...allowedRoles) => {
                 message: "No autenticado"
             });
         }
-        console.log("allowedRoles",allowedRoles);
-        console.log("req.user.role",req.user.role);
+        
         if(!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({
                 status: "error",
