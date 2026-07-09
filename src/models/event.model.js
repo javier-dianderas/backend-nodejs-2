@@ -58,4 +58,8 @@ const eventSchema = new mongoose.Schema(
     }
 );
 
+eventSchema.pre(["find", "findOne"], function() {
+    this.populate("organizer", "_id first_name last_name role");
+});
+
 export const EventModel = mongoose.model('Event', eventSchema);
