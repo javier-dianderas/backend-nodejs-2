@@ -1,15 +1,89 @@
-import mongoose from "mongoose";
 import { EventModel } from "../models/event.model.js";
+import * as eventsService from "../services/events.service.js";
 
 export const getEvents = async (req, res) => {
+
+    const {
+        category,
+        status,
+        location,
+        fromDate,
+        toDate,
+        search,
+        page = 1,
+        limit = 10,
+        sort = "date"
+    } = req.query;
+
+    const filter = {};
+
+    if(category) {
+        filter.category = category;
+    }
+
+    if(status) {
+        filter.status = status;
+    }
+
+    if(location) {
+        filter.location = {
+            $regex: location,
+            $options: "i"
+        }
+    }
+
+    if(fromDate || toDate) {
+        filter.date = {};
+
+        if(fromDate) {
+            filter.date.$gte = new Date(fromDate);
+        }
+
+        if(toDate) {
+            filter.date.$lte = new Date(toDate);
+        }
+    }
+
+    if(search) {
+        filter.$or = [
+            {
+                title: {
+                    $regex: search,
+                    $options: "i"
+                }
+            },
+            {
+                description: {
+                    $regex: search,
+                    $options: "i"
+                }
+            }
+        ]
+    }
+
+    const pageNumber = Number(page) || 1;
+    const limitNumber = Math.min(Number(limit) || 10, 50);
+    const skip = (pageNumber - 1) * limitNumber;
     
     const events = await EventModel
-        .find()
-        .select("title description location start_date end_date capacity price status updatedAt");
+        .find(filter)
+        .populate("category")
+        .populate("organizer", "first_name last_name email")
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNumber);
+    
+    const totalEvents = await EventModel.countDocuments(filter);
 
     res.status(200).json({
         status: "success",
-        payload: events
+        payload: events,
+        pagination: {
+            total: totalEvents,
+            page: pageNumber,
+            limit: limitNumber,
+            totalPages: Math.ceil(totalEvents / limitNumber)
+        }
     });
 }
 
@@ -54,9 +128,9 @@ export const getEventById = async (req, res) => {
 
 export const createEvent = async (req, res) => {
 
-    const { title, description, location, start_date, end_date, capacity, price } = req.body;
+    const { title, description, category, start_date, end_date, location, capacity, price } = req.body;
 
-    if(!title || !description || !location || !start_date || !end_date || capacity === undefined || price === undefined) {
+    if(!title || !description || !category || !start_date || !end_date || !location || capacity === undefined || price === undefined) {
         return res.status(400).json({
             status: "error",
             message: "Todos los campos son obligatorios"
@@ -73,33 +147,22 @@ export const createEvent = async (req, res) => {
         });
     }
 
-    const newEvent = await EventModel.create({
-        title,
-        description,
-        location,
-        start_date,
-        end_date,
-        capacity,
+    const newEvent = await eventsService.createEvent({ 
+        title, 
+        description, 
+        category, 
+        start_date, 
+        end_date, 
+        location, 
+        capacity, 
         price,
-        organizer: req.user._id
+        organizer: req.user._id 
     });
 
     res.status(201).json({
         status: "success",
         message: "Evento registrado correctamente",
-        payload: {
-            id: newEvent.id,
-            title: newEvent.title,
-            description: newEvent.description,
-            location: newEvent.location,
-            start_date: newEvent.start_date,
-            end_date: newEvent.end_date,
-            capacity: newEvent.capacity,
-            price: newEvent.price,
-            organizer: newEvent.organizer ,
-            attendees: newEvent.attendees,
-            status: newEvent.status,
-        }
+        payload: newEvent
     });
 }
 

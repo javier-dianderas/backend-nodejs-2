@@ -12,10 +12,10 @@ const eventSchema = new mongoose.Schema(
             required: true,
             trim: true
         },
-        location: {
-            type: String,
-            required: true,
-            trim: true
+        category: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
+            required: true
         },
         start_date: {
             type: Date,
@@ -25,6 +25,11 @@ const eventSchema = new mongoose.Schema(
             type: Date,
             required: true
         },
+        location: {
+            type: String,
+            required: true,
+            trim: true
+        },        
         capacity: {
             type: Number,
             required: true,
@@ -32,25 +37,18 @@ const eventSchema = new mongoose.Schema(
         },
         price: {
             type: Number,
-            required: true,
             default: 0,
             min: 0
+        },
+        status: {
+            type: String,
+            enum: ["draft", "published", "cancelled", "finished"],
+            default: "draft"
         },
         organizer: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
-        },
-        attendees: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User"
-            }
-        ],
-        status: {
-            type: String,
-            enum: ["scheduled", "cancelled", "completed"],
-            default: "scheduled"
         }
     },
     {
@@ -58,8 +56,8 @@ const eventSchema = new mongoose.Schema(
     }
 );
 
-eventSchema.pre(["find", "findOne"], function() {
-    this.populate("organizer", "_id first_name last_name role");
-});
+// eventSchema.pre(["find", "findOne"], function() {
+//     this.populate("organizer", "_id first_name last_name role");
+// });
 
 export const EventModel = mongoose.model('Event', eventSchema);
