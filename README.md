@@ -324,6 +324,7 @@ Realizan las operaciones contra MongoDB utilizando Mongoose.
 
 # Estructura del proyecto
 
+```
 src/
 ├── config/
 ├── controllers/
@@ -335,3 +336,4 @@ src/
 ├── services/
 ├── utils/
 └── app.js
+```
