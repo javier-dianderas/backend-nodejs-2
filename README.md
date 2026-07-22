@@ -225,7 +225,7 @@ permite utilizar los siguientes parámetros:
 ## Ejemplo
 
 ```http
-GET /api/events?status=published&category=workshop&page=2&limit=5
+GET /api/events?status=published&category=6a57a6d16abc057e3dfb6e80&page=2&limit=5
 ```
 
 También es posible combinar varios filtros:
