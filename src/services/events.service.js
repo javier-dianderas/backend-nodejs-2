@@ -162,7 +162,7 @@ export const updateEvent = async ({ eventId, title, description, category, start
 
     //Se valida que el usuario tenga rol admin para modificar un evento cancelado
     if(event.status === "cancelled" && user.role !== "admin") {
-        throw new AppError("No tiene permiso para modificar un evento cancelado", 400);
+        throw new AppError("No tiene permiso para modificar un evento cancelado", 403);
     }
     console.log("event", event); 
     //Se valida que no se pueda publicar un evento finalizado o cancelado

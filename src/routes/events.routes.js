@@ -3,6 +3,7 @@ import { getEvents, getEventById, createEvent, updateEvent } from "../controller
 import passport from "passport";
 import { authorizeRoles } from "../middlewares/authorizeRoles.middleware.js";
 import { authorizeEventOwnerOrAdmin } from "../middlewares/authorizeEventOwnerOrAdmin.middleware.js";
+import { createTicket, getTicketsByEvent } from "../controllers/tickets.controller.js";
 
 const router = Router();
 
@@ -31,5 +32,20 @@ router.put(
     authorizeRoles("admin", "organizer"),
     authorizeEventOwnerOrAdmin,
     updateEvent);
+
+router.post(
+    "/:eid/tickets",
+    passport.authenticate("current", {
+        session: false
+    }),
+    createTicket);
+
+router.get(
+    "/:eid/tickets",
+    passport.authenticate("current", {
+        session: false
+    }),
+    getTicketsByEvent
+)
 
 export default router;
