@@ -358,24 +358,6 @@ La configuración SMTP se realiza mediante variables de entorno y las credencial
 
 ---
 
-# Casos de prueba recomendados
-
-Antes de entregar el proyecto se recomienda validar los siguientes escenarios:
-
-| Caso                               | Resultado esperado                                                          |
-| ---------------------------------- | --------------------------------------------------------------------------- |
-| Inscripción exitosa                | Ticket creado y correo de confirmación enviado.                             |
-| Inscripción sin autenticación      | Respuesta **401 Unauthorized**.                                             |
-| Evento inexistente                 | Respuesta **404 Not Found**.                                                |
-| Evento cancelado o finalizado      | Error de negocio indicando que el evento no admite inscripciones.           |
-| Cupos insuficientes                | Error indicando que no existe disponibilidad.                               |
-| Inscripción duplicada              | Error indicando que el usuario ya posee una reserva activa para ese evento. |
-| Cancelación propia                 | Ticket cancelado y liberación automática del cupo.                          |
-| Cancelación de ticket ajeno        | Respuesta **403 Forbidden**.                                                |
-| Consulta de tickets de otro evento | Respuesta **403 Forbidden**.                                                |
-
----
-
 # Arquitectura
 
 El proyecto sigue una arquitectura por capas para separar responsabilidades.
