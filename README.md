@@ -7,7 +7,8 @@ La aplicación permite administrar:
 - Gestión de usuarios
 - Gestión de categorías
 - Gestión de eventos
-- Gestión de inscripciones
+- Gestión de inscripciones (tickets)
+- Notificaciones por correo electrónico
 
 ## Contenido
 
@@ -129,6 +130,12 @@ PORT=8080
 NODE_ENV=development
 MONGO_URL=mongodb+srv://usuario:password@cluster...
 JWT_SECRET=clave_super_secreta
+JWT_EXPIRES_IN=1h
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USER=xxx@domain.com
+MAIL_PASS=aaaa bbbb cccc ffff
+MAIL_FROM=xxx@domain.com
 ```
 
 ### Variables
@@ -272,18 +279,116 @@ Las principales reglas son:
 
 ---
 
+# Modelo de tickets
+
+Cada inscripción genera un ticket asociado a un usuario y un evento.
+
+| Campo           | Tipo     | Descripción                                       |
+| --------------- | -------- | ------------------------------------------------- |
+| user            | ObjectId | Referencia al usuario que realizó la inscripción. |
+| event           | ObjectId | Referencia al evento reservado.                   |
+| quantity        | Number   | Cantidad de entradas reservadas.                  |
+| reservationCode | String   | Código único de la reserva.                       |
+| status          | String   | Estado del ticket.                                |
+| createdAt       | Date     | Fecha de creación del ticket.                     |
+| cancelledAt     | Date     | Fecha de cancelación (opcional).                  |
+
+### Estados permitidos
+
+- active
+- cancelled
+
+---
+
+# Endpoints de tickets
+
+| Método | Endpoint                   | Acceso                              |
+| ------ | -------------------------- | ----------------------------------- |
+| POST   | `/api/events/:eid/tickets` | Usuario autenticado                 |
+| GET    | `/api/tickets/my-tickets`  | Usuario autenticado                 |
+| GET    | `/api/events/:eid/tickets` | Organizer (eventos propios) o Admin |
+| PATCH  | `/api/tickets/:tid/cancel` | Dueño del ticket o Admin            |
+
+---
+
+# Flujo de inscripción
+
+El proceso de inscripción a un evento sigue el siguiente flujo:
+
+1. El usuario autenticado selecciona un evento publicado.
+2. El sistema valida las reglas de negocio.
+3. Se verifica la disponibilidad de cupos.
+4. Se genera un código único de reserva.
+5. Se crea el ticket asociado al usuario y al evento.
+6. Se envía un correo electrónico de confirmación.
+7. El ticket queda registrado con estado **confirmed**.
+
+---
+
+# Reglas de negocio
+
+Además de las reglas generales del sistema, el proceso de inscripción considera las siguientes validaciones:
+
+- El evento debe existir.
+- Solo es posible inscribirse a eventos con estado **published**.
+- No es posible inscribirse a eventos cancelados o finalizados.
+- La cantidad de entradas (**quantity**) debe ser mayor que cero.
+- Deben existir cupos suficientes para completar la reserva.
+- Solo los tickets con estado **confirmed** ocupan capacidad.
+- Los tickets cancelados liberan automáticamente los cupos disponibles.
+- Un usuario solo puede tener una inscripción activa por evento.
+- La cancelación cambia el estado del ticket a **cancelled** y registra la fecha de cancelación.
+- Los tickets nunca se eliminan físicamente de la base de datos.
+
+---
+
+# Notificaciones por correo electrónico
+
+Al confirmar una inscripción, la aplicación envía automáticamente un correo electrónico utilizando **Nodemailer**.
+
+El correo de confirmación incluye información relevante de la reserva, como:
+
+- Código de reserva.
+- Nombre del evento.
+- Fecha y hora del evento.
+- Lugar del evento.
+- Cantidad de entradas reservadas.
+
+La configuración SMTP se realiza mediante variables de entorno y las credenciales nunca deben almacenarse directamente en el código fuente.
+
+---
+
+# Casos de prueba recomendados
+
+Antes de entregar el proyecto se recomienda validar los siguientes escenarios:
+
+| Caso                               | Resultado esperado                                                          |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| Inscripción exitosa                | Ticket creado y correo de confirmación enviado.                             |
+| Inscripción sin autenticación      | Respuesta **401 Unauthorized**.                                             |
+| Evento inexistente                 | Respuesta **404 Not Found**.                                                |
+| Evento cancelado o finalizado      | Error de negocio indicando que el evento no admite inscripciones.           |
+| Cupos insuficientes                | Error indicando que no existe disponibilidad.                               |
+| Inscripción duplicada              | Error indicando que el usuario ya posee una reserva activa para ese evento. |
+| Cancelación propia                 | Ticket cancelado y liberación automática del cupo.                          |
+| Cancelación de ticket ajeno        | Respuesta **403 Forbidden**.                                                |
+| Consulta de tickets de otro evento | Respuesta **403 Forbidden**.                                                |
+
+---
+
 # Arquitectura
 
 El proyecto sigue una arquitectura por capas para separar responsabilidades.
 
-```
+```text
 Controller
     │
     ▼
 Service
     │
-    ▼
-Repository
+    ├───────────────┐
+    ▼               ▼
+Repository     Email Service
     │
     ▼
 DAO
@@ -298,7 +403,7 @@ Reciben la petición HTTP y construyen la respuesta.
 
 ### Services
 
-Implementan la lógica de negocio y las validaciones.
+Implementan la lógica de negocio, validaciones y coordinación del envío de correos electrónicos.
 
 ### Repositories
 
@@ -307,6 +412,10 @@ Abstraen el acceso a los datos.
 ### DAO
 
 Realizan las operaciones contra MongoDB utilizando Mongoose.
+
+### Email Service
+
+Centraliza el envío de notificaciones mediante Nodemailer.
 
 ---
 
